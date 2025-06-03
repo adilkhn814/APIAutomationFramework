@@ -1,6 +1,7 @@
 package com.api.test;
 
 import org.testng.Assert;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.api.base.AuthService;
@@ -8,7 +9,8 @@ import com.api.models.request.SignUpRequest;
 
 import io.restassured.response.Response;
 
-public class AccountCreationTest {
+@Listeners(com.api.listeners.TestListener.class)
+public class SignUpTest {
 	
 	@Test(description = "Verify if Sig Up API is working")
 	public void createAccountTest() {
