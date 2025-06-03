@@ -1,16 +1,13 @@
 package com.api.models.request;
 
-
-
-
-public class ProfileRequest {
+public class UpdateProfileRequest {
 
 	private String firstName;
 	private String lastName;
 	private String email;
 	private String mobileNumber;
 
-	public ProfileRequest(String firstName, String lastName, String email, String mobileNumber) {
+	private UpdateProfileRequest(String firstName, String lastName, String email, String mobileNumber) {
 		super();
 		this.firstName = firstName;
 		this.lastName = lastName;
@@ -52,7 +49,7 @@ public class ProfileRequest {
 
 	@Override
 	public String toString() {
-		return "ProfileRequest [firstName=" + firstName + ", lastName=" + lastName + ", email=" + email
+		return "UpdateProfileRequest [firstName=" + firstName + ", lastName=" + lastName + ", email=" + email
 				+ ", mobileNumber=" + mobileNumber + "]";
 	}
 
@@ -83,9 +80,9 @@ public class ProfileRequest {
 			return this;
 		}
 
-		public ProfileRequest build() {
-			ProfileRequest profileRequest = new ProfileRequest(firstName, lastName, email, mobileNumber);
-			return profileRequest;
+		public UpdateProfileRequest build() {
+			UpdateProfileRequest UpdateProfileRequest = new UpdateProfileRequest(firstName, lastName, email, mobileNumber);
+			return UpdateProfileRequest;
 		}
 	}
 

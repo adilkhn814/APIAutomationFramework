@@ -1,11 +1,11 @@
 package com.api.models.request;
 
 public class LoginRequest {
-	
+
 	private String username;
 	private String password;
-	
-	public LoginRequest(String username, String password) {
+
+	private LoginRequest(String username, String password) {
 		super();
 		this.username = username;
 		this.password = password;
@@ -31,7 +31,27 @@ public class LoginRequest {
 	public String toString() {
 		return "LoginRequest [username=" + username + ", password=" + password + "]";
 	}
-	
-	
+
+	public static class Builder {
+		private String username;
+		private String password;
+
+		public Builder username(String username) {
+			this.username = username;
+			return this;
+		}
+
+		public Builder password(String password) {
+			this.password = password;
+			return this;
+		}
+
+		public LoginRequest build() {
+			LoginRequest loginRequest = new LoginRequest(username, password);
+			return loginRequest;
+		}
+
+	}
+
 
 }

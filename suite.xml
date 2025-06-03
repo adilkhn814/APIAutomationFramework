@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
-<suite name="API Test Suite" >
-  <test thread-count="5" name="API Test">
-    <classes>
-      <class name="com.api.test.LoginTest">
-       
-      </class>
-    </classes>
-  </test> <!-- Default test(failed) -->
-</suite> <!-- Failed suite [Default suite] -->
+<suite name="API Test Suite">
+	<test thread-count="5" name="API Test">
+		<classes>
+			<class name="com.api.test.SignUpTest" />
+			<class name="com.api.test.LoginTest" />
+			<class name="com.api.test.ForgotPasswordTest" />
+			<class name="com.api.test.GetProfileTest" />
+			<class name="com.api.test.UpdateProfileTest" />
+
+		</classes>
+	</test> <!--
+	Default test(failed) -->
+</suite> <!--
+Failed suite [Default suite] -->

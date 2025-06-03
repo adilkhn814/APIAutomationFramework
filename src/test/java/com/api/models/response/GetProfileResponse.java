@@ -1,6 +1,6 @@
 package com.api.models.response;
 
-public class UserProfileResponse {
+public class GetProfileResponse {
 
 	private String id;
 	private String username;
@@ -9,11 +9,11 @@ public class UserProfileResponse {
 	private String lastName;
 	private String mobileNumber;
 	
-	public UserProfileResponse() {
+	public GetProfileResponse() {
 		
 	}
 
-	public UserProfileResponse(String id, String username, String email, String firstName, String lastName,
+	public GetProfileResponse(String id, String username, String email, String firstName, String lastName,
 			String mobileNumber) {
 		super();
 		this.id = id;
@@ -74,7 +74,7 @@ public class UserProfileResponse {
 
 	@Override
 	public String toString() {
-		return "UserProfileResponse [id=" + id + ", username=" + username + ", email=" + email + ", firstName="
+		return "GetProfileResponse [id=" + id + ", username=" + username + ", email=" + email + ", firstName="
 				+ firstName + ", lastName=" + lastName + ", mobileNumber=" + mobileNumber + "]";
 	}
 

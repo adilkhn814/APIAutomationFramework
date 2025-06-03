@@ -28,6 +28,7 @@ public class AuthService extends BaseService {
 
 	public Response resetPassword(ResetPasswordRequest resetPasswordRequest, String token) {
 		setAuthToken(token);
+		System.out.println("++++++++++++++++++++Set token called++++++++++++++++++++");
 		return postRequest(resetPasswordRequest, BASE_PATH + "reset-password");
 	}
 }
