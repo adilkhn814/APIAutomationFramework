@@ -382,4 +382,107 @@ public class WireMockManager {
             return false;
         }
     }
+    
+    /**
+     * Create mock response for BDD testing
+     */
+    public io.restassured.response.Response createMockResponse(int statusCode, String responseBody) {
+        try {
+            logger.debug("Creating mock response with status: {} and body: {}", statusCode, responseBody);
+            return new MockResponse(statusCode, responseBody);
+        } catch (Exception e) {
+            logger.error("Error creating mock response", e);
+            throw new RuntimeException("Failed to create mock response", e);
+        }
+    }
+    
+    /**
+     * Simple mock response implementation for BDD testing
+     */
+    private static class MockResponse implements io.restassured.response.Response {
+        private final int statusCode;
+        private final String body;
+        private final long responseTime = 100; // Simulate 100ms response time
+        
+        public MockResponse(int statusCode, String body) {
+            this.statusCode = statusCode;
+            this.body = body;
+        }
+        
+        @Override public int getStatusCode() { return statusCode; }
+        @Override public long getTime() { return responseTime; }
+        @Override public io.restassured.response.ResponseBody getBody() { return new MockResponseBody(body); }
+        @Override public String asString() { return body; }
+        @Override public String print() { return body; }
+        
+        // Simplified implementations for other required methods
+        @Override public String getStatusLine() { return "HTTP/1.1 " + statusCode; }
+        @Override public io.restassured.response.Headers getHeaders() { return new io.restassured.response.Headers(); }
+        @Override public String getHeader(String name) { return null; }
+        @Override public java.util.Map<String, String> getCookies() { return new java.util.HashMap<>(); }
+        @Override public String getCookie(String name) { return null; }
+        @Override public io.restassured.response.ResponseOptions<?> then() { return this; }
+        @Override public String asPrettyString() { return body; }
+        @Override public byte[] asByteArray() { return body.getBytes(); }
+        @Override public java.io.InputStream asInputStream() { return new java.io.ByteArrayInputStream(body.getBytes()); }
+        @Override public <T> T as(Class<T> cls) { throw new UnsupportedOperationException(); }
+        @Override public <T> T as(Class<T> cls, io.restassured.mapper.ObjectMapperType mapperType) { throw new UnsupportedOperationException(); }
+        @Override public <T> T as(io.restassured.common.mapper.TypeRef<T> typeRef) { throw new UnsupportedOperationException(); }
+        @Override public io.restassured.path.json.JsonPath jsonPath() { throw new UnsupportedOperationException(); }
+        @Override public io.restassured.path.json.JsonPath jsonPath(io.restassured.path.json.config.JsonPathConfig config) { throw new UnsupportedOperationException(); }
+        @Override public io.restassured.path.xml.XmlPath xmlPath() { throw new UnsupportedOperationException(); }
+        @Override public io.restassured.path.xml.XmlPath xmlPath(io.restassured.path.xml.config.XmlPathConfig config) { throw new UnsupportedOperationException(); }
+        @Override public io.restassured.path.xml.XmlPath xmlPath(io.restassured.path.xml.XmlPath.CompatibilityMode compatibilityMode) { throw new UnsupportedOperationException(); }
+        @Override public io.restassured.path.xml.XmlPath htmlPath() { throw new UnsupportedOperationException(); }
+        @Override public <T> T path(String path, String... arguments) { throw new UnsupportedOperationException(); }
+        @Override public String prettyPrint() { return body; }
+        @Override public io.restassured.response.Response peek() { return this; }
+        @Override public io.restassured.response.Response prettyPeek() { return this; }
+        @Override public io.restassured.response.ValidatableResponse then() { throw new UnsupportedOperationException(); }
+        @Override public io.restassured.response.ResponseBody body() { return getBody(); }
+        @Override public io.restassured.response.Headers headers() { return getHeaders(); }
+        @Override public java.util.Map<String, String> cookies() { return getCookies(); }
+        @Override public int statusCode() { return statusCode; }
+        @Override public String statusLine() { return getStatusLine(); }
+        @Override public String cookie(String name) { return getCookie(name); }
+        @Override public String header(String name) { return getHeader(name); }
+        @Override public long time() { return responseTime; }
+        @Override public long timeIn(java.util.concurrent.TimeUnit timeUnit) { return responseTime; }
+        @Override public String getContentType() { return "application/json"; }
+        @Override public io.restassured.http.ContentType contentType() { return io.restassured.http.ContentType.JSON; }
+        @Override public String getSessionId() { return null; }
+        @Override public String sessionId() { return null; }
+        @Override public io.restassured.response.DetailedCookies getDetailedCookies() { return new io.restassured.response.DetailedCookies(); }
+        @Override public io.restassured.response.DetailedCookies detailedCookies() { return getDetailedCookies(); }
+        @Override public io.restassured.response.DetailedCookie getDetailedCookie(String name) { return null; }
+        @Override public io.restassured.response.DetailedCookie detailedCookie(String name) { return null; }
+    }
+    
+    /**
+     * Mock response body implementation
+     */
+    private static class MockResponseBody implements io.restassured.response.ResponseBody {
+        private final String body;
+        
+        public MockResponseBody(String body) {
+            this.body = body;
+        }
+        
+        @Override public String asString() { return body; }
+        @Override public String asPrettyString() { return body; }
+        @Override public byte[] asByteArray() { return body.getBytes(); }
+        @Override public java.io.InputStream asInputStream() { return new java.io.ByteArrayInputStream(body.getBytes()); }
+        @Override public <T> T as(Class<T> cls) { throw new UnsupportedOperationException(); }
+        @Override public <T> T as(Class<T> cls, io.restassured.mapper.ObjectMapperType mapperType) { throw new UnsupportedOperationException(); }
+        @Override public <T> T as(io.restassured.common.mapper.TypeRef<T> typeRef) { throw new UnsupportedOperationException(); }
+        @Override public io.restassured.path.json.JsonPath jsonPath() { throw new UnsupportedOperationException(); }
+        @Override public io.restassured.path.json.JsonPath jsonPath(io.restassured.path.json.config.JsonPathConfig config) { throw new UnsupportedOperationException(); }
+        @Override public io.restassured.path.xml.XmlPath xmlPath() { throw new UnsupportedOperationException(); }
+        @Override public io.restassured.path.xml.XmlPath xmlPath(io.restassured.path.xml.config.XmlPathConfig config) { throw new UnsupportedOperationException(); }
+        @Override public io.restassured.path.xml.XmlPath xmlPath(io.restassured.path.xml.XmlPath.CompatibilityMode compatibilityMode) { throw new UnsupportedOperationException(); }
+        @Override public io.restassured.path.xml.XmlPath htmlPath() { throw new UnsupportedOperationException(); }
+        @Override public <T> T path(String path, String... arguments) { throw new UnsupportedOperationException(); }
+        @Override public String print() { return body; }
+        @Override public String prettyPrint() { return body; }
+    }
 }

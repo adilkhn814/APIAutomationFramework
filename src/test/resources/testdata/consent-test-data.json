@@ -1,0 +1,140 @@
+{
+  "consentTestData": {
+    "basicConsent": {
+      "customerId": "customer@example.com",
+      "fiuId": "test-fiu-001",
+      "fipId": "test-fip-001",
+      "expectedStatus": "READY"
+    },
+    "comprehensiveConsent": {
+      "customerId": "premium@example.com",
+      "fiuId": "premium-fiu-001",
+      "fipId": "premium-fip-001",
+      "consentTypes": ["PROFILE", "SUMMARY", "TRANSACTIONS"],
+      "fiTypes": ["DEPOSIT", "TERM_DEPOSIT", "SIP"],
+      "purposeCode": "101",
+      "purposeDescription": "Wealth management service",
+      "expectedStatus": "READY"
+    },
+    "invalidScenarios": {
+      "emptyCustomerId": {
+        "customerId": "",
+        "fiuId": "test-fiu-001",
+        "fipId": "test-fip-001",
+        "expectedStatusCode": 400
+      },
+      "invalidCustomerId": {
+        "customerId": "invalid-customer",
+        "fiuId": "test-fiu-001",
+        "fipId": "test-fip-001",
+        "expectedStatusCode": 400
+      },
+      "longCustomerId": {
+        "customerId": "customer_with_extremely_long_identifier_that_exceeds_normal_limits@example.com",
+        "fiuId": "test-fiu-001",
+        "fipId": "test-fip-001",
+        "expectedStatusCode": 200
+      }
+    },
+    "performanceThresholds": {
+      "responseTimeMs": 5000,
+      "totalExecutionTimeMs": 10000
+    },
+    "customers": [
+      {
+        "id": "customer@example.com",
+        "type": "INDIVIDUAL",
+        "name": "John Doe",
+        "status": "ACTIVE"
+      },
+      {
+        "id": "premium@example.com",
+        "type": "PREMIUM",
+        "name": "Jane Smith",
+        "status": "ACTIVE"
+      },
+      {
+        "id": "business@example.com",
+        "type": "BUSINESS",
+        "name": "Acme Corp",
+        "status": "ACTIVE"
+      }
+    ],
+    "fius": [
+      {
+        "id": "test-fiu-001",
+        "name": "Test FIU 1",
+        "category": "AA"
+      },
+      {
+        "id": "premium-fiu-001",
+        "name": "Premium FIU",
+        "category": "NBFC-AA"
+      },
+      {
+        "id": "business-fiu-001",
+        "name": "Business FIU",
+        "category": "BANK-AA"
+      }
+    ],
+    "fips": [
+      {
+        "id": "test-fip-001",
+        "name": "Test FIP 1",
+        "type": "BANK"
+      },
+      {
+        "id": "premium-fip-001",
+        "name": "Premium FIP",
+        "type": "NBFC"
+      },
+      {
+        "id": "business-fip-001",
+        "name": "Business FIP",
+        "type": "COOPERATIVE_BANK"
+      }
+    ],
+    "validStatuses": [
+      "PENDING",
+      "READY", 
+      "ACTIVE",
+      "PAUSED",
+      "EXPIRED",
+      "DENIED",
+      "REVOKED"
+    ],
+    "consentTypes": {
+      "available": ["PROFILE", "SUMMARY", "TRANSACTIONS"],
+      "descriptions": {
+        "PROFILE": "Profile information access",
+        "SUMMARY": "Account summary access",
+        "TRANSACTIONS": "Transaction details access"
+      }
+    },
+    "fiTypes": {
+      "available": ["DEPOSIT", "TERM_DEPOSIT", "SIP", "CP", "GOVT_SECURITIES", "EQUITIES", "BONDS", "DEBENTURES", "MUTUAL_FUNDS", "ETF", "IDR", "CIS", "AIF", "INSURANCE_POLICIES", "NPS", "INVIT", "REIT", "OTHER"],
+      "descriptions": {
+        "DEPOSIT": "Savings and Current Account",
+        "TERM_DEPOSIT": "Fixed/Term Deposits",
+        "SIP": "Systematic Investment Plan"
+      }
+    },
+    "purposes": [
+      {
+        "code": "101",
+        "category": "Personal Finance Management",
+        "description": "Wealth management service"
+      },
+      {
+        "code": "102", 
+        "category": "Account Aggregation",
+        "description": "Consolidated account view"
+      },
+      {
+        "code": "103",
+        "category": "Financial Advisory",
+        "description": "Investment advisory services"
+      }
+    ]
+  }
+}

@@ -1,0 +1,354 @@
+name: Account Aggregator BDD Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run daily at 6 AM UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    inputs:
+      test_tags:
+        description: 'Cucumber tags to run'
+        required: false
+        default: '@smoke'
+      environment:
+        description: 'Target environment'
+        required: false
+        default: 'TEST'
+        type: choice
+        options:
+        - TEST
+        - STAGING
+        - PROD
+
+env:
+  JAVA_VERSION: '11'
+  MAVEN_OPTS: '-Xmx1024m'
+
+jobs:
+  # Job 1: Quick Smoke Tests
+  smoke-tests:
+    name: 🚀 Smoke Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: ☕ Set up JDK ${{ env.JAVA_VERSION }}
+      uses: actions/setup-java@v3
+      with:
+        java-version: ${{ env.JAVA_VERSION }}
+        distribution: 'temurin'
+        cache: maven
+        
+    - name: 🔧 Cache Maven dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+        
+    - name: 🛠️ Verify Framework Setup
+      run: |
+        chmod +x verify-bdd-framework.sh
+        ./verify-bdd-framework.sh
+        
+    - name: 🧪 Run Smoke Tests
+      run: |
+        mvn clean test -Dcucumber.filter.tags="@smoke" \
+          -Denvironment=${{ github.event.inputs.environment || 'TEST' }} \
+          -Dmaven.test.failure.ignore=true
+        
+    - name: 📊 Upload Test Reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: smoke-test-reports
+        path: |
+          target/cucumber-reports/
+          target/surefire-reports/
+          logs/
+        retention-days: 30
+        
+    - name: 📈 Publish Test Results
+      uses: dorny/test-reporter@v1
+      if: always()
+      with:
+        name: Smoke Test Results
+        path: target/surefire-reports/*.xml
+        reporter: java-junit
+        fail-on-error: true
+
+  # Job 2: Full Regression Tests
+  regression-tests:
+    name: 🔄 Regression Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: smoke-tests
+    
+    strategy:
+      matrix:
+        test-suite:
+          - tag: "@consent"
+            name: "Consent Management"
+          - tag: "@fi"
+            name: "Financial Information"
+          - tag: "@performance"
+            name: "Performance Tests"
+          - tag: "@security"
+            name: "Security Tests"
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: ☕ Set up JDK ${{ env.JAVA_VERSION }}
+      uses: actions/setup-java@v3
+      with:
+        java-version: ${{ env.JAVA_VERSION }}
+        distribution: 'temurin'
+        cache: maven
+        
+    - name: 🧪 Run ${{ matrix.test-suite.name }} Tests
+      run: |
+        mvn clean test -Dcucumber.filter.tags="${{ matrix.test-suite.tag }}" \
+          -Denvironment=${{ github.event.inputs.environment || 'TEST' }} \
+          -Dmaven.test.failure.ignore=true
+        
+    - name: 📊 Upload ${{ matrix.test-suite.name }} Reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: ${{ matrix.test-suite.name }}-reports
+        path: |
+          target/cucumber-reports/
+          target/surefire-reports/
+        retention-days: 30
+
+  # Job 3: Custom Test Execution
+  custom-tests:
+    name: 🎯 Custom Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: ☕ Set up JDK ${{ env.JAVA_VERSION }}
+      uses: actions/setup-java@v3
+      with:
+        java-version: ${{ env.JAVA_VERSION }}
+        distribution: 'temurin'
+        cache: maven
+        
+    - name: 🧪 Run Custom Tests
+      run: |
+        mvn clean test -Dcucumber.filter.tags="${{ github.event.inputs.test_tags }}" \
+          -Denvironment=${{ github.event.inputs.environment }} \
+          -Dmaven.test.failure.ignore=true
+        
+    - name: 📊 Upload Custom Test Reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: custom-test-reports
+        path: |
+          target/cucumber-reports/
+          target/surefire-reports/
+        retention-days: 30
+
+  # Job 4: Scheduled Full Suite
+  scheduled-tests:
+    name: 📅 Scheduled Full Test Suite
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: ☕ Set up JDK ${{ env.JAVA_VERSION }}
+      uses: actions/setup-java@v3
+      with:
+        java-version: ${{ env.JAVA_VERSION }}
+        distribution: 'temurin'
+        cache: maven
+        
+    - name: 🧪 Run Full Test Suite
+      run: |
+        mvn clean test -Dcucumber.filter.tags="@regression" \
+          -Denvironment=TEST \
+          -Dmaven.test.failure.ignore=true
+        
+    - name: 📊 Generate Test Summary
+      run: |
+        echo "## 📊 Daily Test Execution Summary" >> $GITHUB_STEP_SUMMARY
+        echo "**Date:** $(date)" >> $GITHUB_STEP_SUMMARY
+        echo "**Environment:** TEST" >> $GITHUB_STEP_SUMMARY
+        echo "**Tags:** @regression" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Count test results
+        if [ -f target/cucumber-reports/cucumber.json ]; then
+          echo "**Test Results:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Total Scenarios: $(jq '[.[].elements | length] | add' target/cucumber-reports/cucumber.json)" >> $GITHUB_STEP_SUMMARY
+          echo "- Passed: $(jq '[.[].elements[] | select(.status == "passed")] | length' target/cucumber-reports/cucumber.json)" >> $GITHUB_STEP_SUMMARY
+          echo "- Failed: $(jq '[.[].elements[] | select(.status == "failed")] | length' target/cucumber-reports/cucumber.json)" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+    - name: 📊 Upload Scheduled Test Reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: scheduled-test-reports
+        path: |
+          target/cucumber-reports/
+          target/surefire-reports/
+          logs/
+        retention-days: 90
+        
+    - name: 📧 Send Test Results Notification
+      if: failure()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        channel: '#test-results'
+        text: |
+          🚨 Scheduled BDD tests failed!
+          
+          **Repository:** ${{ github.repository }}
+          **Branch:** ${{ github.ref }}
+          **Commit:** ${{ github.sha }}
+          **Workflow:** ${{ github.workflow }}
+          
+          Please check the test reports for details.
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # Job 5: Performance Monitoring
+  performance-monitoring:
+    name: ⚡ Performance Monitoring
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: smoke-tests
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: ☕ Set up JDK ${{ env.JAVA_VERSION }}
+      uses: actions/setup-java@v3
+      with:
+        java-version: ${{ env.JAVA_VERSION }}
+        distribution: 'temurin'
+        cache: maven
+        
+    - name: ⚡ Run Performance Tests
+      run: |
+        mvn clean test -Dcucumber.filter.tags="@performance" \
+          -Denvironment=TEST \
+          -Dperformance.response.threshold.ms=3000 \
+          -Dperformance.total.threshold.ms=8000 \
+          -Dmaven.test.failure.ignore=true
+        
+    - name: 📈 Performance Analysis
+      run: |
+        echo "## ⚡ Performance Test Results" >> $GITHUB_STEP_SUMMARY
+        echo "**Thresholds:**" >> $GITHUB_STEP_SUMMARY
+        echo "- Response Time: < 3000ms" >> $GITHUB_STEP_SUMMARY
+        echo "- Total Execution: < 8000ms" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Extract performance metrics from logs
+        if [ -f logs/aa-test.log ]; then
+          echo "**Results:**" >> $GITHUB_STEP_SUMMARY
+          grep -i "response time\|execution time" logs/aa-test.log | tail -10 >> $GITHUB_STEP_SUMMARY
+        fi
+
+  # Job 6: Test Report Consolidation
+  consolidate-reports:
+    name: 📋 Consolidate Test Reports
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [smoke-tests, regression-tests]
+    
+    steps:
+    - name: 📥 Download All Artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: all-reports
+        
+    - name: 📊 Generate Consolidated Report
+      run: |
+        echo "# 🧪 BDD Test Execution Report" > CONSOLIDATED_REPORT.md
+        echo "" >> CONSOLIDATED_REPORT.md
+        echo "**Workflow:** ${{ github.workflow }}" >> CONSOLIDATED_REPORT.md
+        echo "**Trigger:** ${{ github.event_name }}" >> CONSOLIDATED_REPORT.md
+        echo "**Branch:** ${{ github.ref }}" >> CONSOLIDATED_REPORT.md
+        echo "**Commit:** ${{ github.sha }}" >> CONSOLIDATED_REPORT.md
+        echo "**Date:** $(date)" >> CONSOLIDATED_REPORT.md
+        echo "" >> CONSOLIDATED_REPORT.md
+        
+        # List all available reports
+        echo "## 📁 Available Reports" >> CONSOLIDATED_REPORT.md
+        find all-reports -name "*.html" -type f | while read file; do
+          echo "- $(basename $file)" >> CONSOLIDATED_REPORT.md
+        done
+        
+    - name: 📤 Upload Consolidated Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: consolidated-test-report
+        path: |
+          CONSOLIDATED_REPORT.md
+          all-reports/
+        retention-days: 90
+
+  # Job 7: Security Scan
+  security-scan:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🔍 Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        
+    - name: 📤 Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+# Workflow-level environment variables
+env:
+  # Framework Configuration
+  FRAMEWORK_VERSION: "1.0.0"
+  
+  # Test Configuration
+  DEFAULT_TAGS: "@smoke"
+  DEFAULT_ENVIRONMENT: "TEST"
+  
+  # Performance Thresholds
+  PERFORMANCE_RESPONSE_THRESHOLD: "5000"
+  PERFORMANCE_EXECUTION_THRESHOLD: "10000"
+  
+  # Reporting Configuration
+  REPORT_RETENTION_DAYS: "30"
+  
+  # Security Configuration
+  SECURITY_SCAN_ENABLED: "true"
