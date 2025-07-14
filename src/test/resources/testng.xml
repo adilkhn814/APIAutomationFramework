@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+
+<suite name="AccountAggregatorTestSuite" verbose="1" parallel="false" thread-count="1">
+    
+    <parameter name="environment" value="TEST"/>
+    <parameter name="baseUrl" value="https://api.account-aggregator.com"/>
+    
+    <listeners>
+        <!-- Add custom listeners here if needed -->
+    </listeners>
+    
+    <!-- Test groups definition -->
+    <groups>
+        <run>
+            <include name="smoke"/>
+            <include name="regression"/>
+            <include name="consent"/>
+            <include name="fi-request"/>
+            <include name="fi-fetch"/>
+        </run>
+    </groups>
+    
+    <!-- Smoke Test Suite -->
+    <test name="SmokeTests" preserve-order="true" group-by-instances="true">
+        <groups>
+            <include name="smoke"/>
+        </groups>
+        <classes>
+            <class name="com.aa.tests.ConsentAPITest">
+                <methods>
+                    <include name="testCreateBasicConsent"/>
+                    <include name="testConsentPerformance"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+    
+    <!-- Consent API Tests -->
+    <test name="ConsentAPITests" preserve-order="true">
+        <groups>
+            <include name="consent"/>
+            <include name="regression"/>
+        </groups>
+        <classes>
+            <class name="com.aa.tests.ConsentAPITest"/>
+        </classes>
+    </test>
+    
+    <!-- FI Request Tests (placeholder) -->
+    <test name="FIRequestTests" preserve-order="true" enabled="false">
+        <groups>
+            <include name="fi-request"/>
+            <include name="regression"/>
+        </groups>
+        <classes>
+            <!-- Add FI Request test classes here -->
+            <!-- <class name="com.aa.tests.FIRequestAPITest"/> -->
+        </classes>
+    </test>
+    
+    <!-- FI Fetch Tests (placeholder) -->
+    <test name="FIFetchTests" preserve-order="true" enabled="false">
+        <groups>
+            <include name="fi-fetch"/>
+            <include name="regression"/>
+        </groups>
+        <classes>
+            <!-- Add FI Fetch test classes here -->
+            <!-- <class name="com.aa.tests.FIFetchAPITest"/> -->
+        </classes>
+    </test>
+    
+    <!-- Performance Tests -->
+    <test name="PerformanceTests" preserve-order="true" enabled="false">
+        <groups>
+            <include name="performance"/>
+        </groups>
+        <classes>
+            <class name="com.aa.tests.ConsentAPITest">
+                <methods>
+                    <include name="testConsentPerformance"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+    
+</suite>

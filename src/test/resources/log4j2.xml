@@ -1,31 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
-  <Appenders>
-    <Console name="Console" target="SYSTEM_OUT">
-      <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
-    </Console>
-
-    <File name="FileLogger" fileName="logs/test.log" append="true">
-      <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
-    </File>
-  </Appenders>
-
-  <Loggers>
-    <!-- Your existing logger for your app -->
-    <Logger name="com.api.listeners" level="info" additivity="false">
-      <AppenderRef ref="Console"/>
-      <AppenderRef ref="FileLogger"/>
-    </Logger>
-
-    <!-- Suppress TestNG internal Utils logs -->
-    <Logger name="org.testng.internal.Utils" level="error" additivity="false">
-      <AppenderRef ref="Console"/>
-      <AppenderRef ref="FileLogger"/>
-    </Logger>
-
-    <!-- Root logger -->
-    <Root level="info">
-      <AppenderRef ref="Console" />
-      <AppenderRef ref="FileLogger" />
-    </Root>
-  </Loggers>
+    
+    <Properties>
+        <Property name="LOG_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n</Property>
+        <Property name="LOG_DIR">logs</Property>
+    </Properties>
+    
+    <Appenders>
+        <!-- Console Appender -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Console>
+        
+        <!-- File Appender for all logs -->
+        <RollingFile name="FileAppender" fileName="${LOG_DIR}/aa-test.log" 
+                     filePattern="${LOG_DIR}/aa-test-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="10MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        
+        <!-- File Appender for error logs only -->
+        <RollingFile name="ErrorFileAppender" fileName="${LOG_DIR}/aa-test-error.log" 
+                     filePattern="${LOG_DIR}/aa-test-error-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="5MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="5"/>
+        </RollingFile>
+        
+        <!-- Test Results Appender -->
+        <RollingFile name="TestResultsAppender" fileName="${LOG_DIR}/test-results.log" 
+                     filePattern="${LOG_DIR}/test-results-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %msg%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="5MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="3"/>
+        </RollingFile>
+    </Appenders>
+    
+    <Loggers>
+        <!-- Root logger -->
+        <Root level="INFO">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="FileAppender"/>
+            <AppenderRef ref="ErrorFileAppender"/>
+        </Root>
+        
+        <!-- Framework specific loggers -->
+        <Logger name="com.aa" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="FileAppender"/>
+            <AppenderRef ref="ErrorFileAppender"/>
+        </Logger>
+        
+        <!-- RestAssured logging -->
+        <Logger name="io.restassured" level="INFO" additivity="false">
+            <AppenderRef ref="FileAppender"/>
+        </Logger>
+        
+        <!-- TestNG logging -->
+        <Logger name="org.testng" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="FileAppender"/>
+        </Logger>
+        
+        <!-- WireMock logging -->
+        <Logger name="com.github.tomakehurst.wiremock" level="INFO" additivity="false">
+            <AppenderRef ref="FileAppender"/>
+        </Logger>
+        
+        <!-- Extent Reports logging -->
+        <Logger name="com.aventstack.extentreports" level="INFO" additivity="false">
+            <AppenderRef ref="FileAppender"/>
+        </Logger>
+        
+        <!-- Test Results Logger -->
+        <Logger name="TEST_RESULTS" level="INFO" additivity="false">
+            <AppenderRef ref="TestResultsAppender"/>
+        </Logger>
+        
+        <!-- Database logging (when enabled) -->
+        <Logger name="com.zaxxer.hikari" level="WARN" additivity="false">
+            <AppenderRef ref="FileAppender"/>
+        </Logger>
+        
+        <!-- Reduce noise from common libraries -->
+        <Logger name="org.apache.http" level="WARN"/>
+        <Logger name="httpclient.wire" level="WARN"/>
+        <Logger name="org.springframework" level="WARN"/>
+        <Logger name="org.hibernate" level="WARN"/>
+    </Loggers>
+    
 </Configuration>
